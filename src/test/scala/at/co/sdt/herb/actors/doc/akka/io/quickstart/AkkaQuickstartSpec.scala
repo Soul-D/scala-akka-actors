@@ -1,4 +1,4 @@
-package at.co.sdt.herb.actors.doc.akka.io
+package at.co.sdt.herb.actors.doc.akka.io.quickstart
 
 import org.scalatest.{ BeforeAndAfterAll, FlatSpecLike, Matchers }
 

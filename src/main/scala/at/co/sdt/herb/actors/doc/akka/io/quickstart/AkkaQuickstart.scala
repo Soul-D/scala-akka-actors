@@ -1,8 +1,35 @@
-package at.co.sdt.herb.actors.doc.akka.io
+package at.co.sdt.herb.actors.doc.akka.io.quickstart
 
 import akka.actor.{ Actor, ActorLogging, ActorRef, ActorSystem, Props }
 
 import scala.io.StdIn
+
+/** printer-companion
+  *
+  */
+object Printer {
+  def props: Props = Props[Printer]
+
+  /** printer-messages
+    *
+    * @param greeting String used for logging
+    */
+  final case class Greeting(greeting: String)
+
+}
+
+/** printer-actor
+  *
+  */
+class Printer extends Actor with ActorLogging {
+
+  import Printer._
+
+  def receive: Receive = {
+    case Greeting(greeting) =>
+      log.info(s"Greeting received (from ${ sender() }): $greeting")
+  }
+}
 
 /** greeter-companion
   *
@@ -36,33 +63,6 @@ class Greeter(message: String, printerActor: ActorRef) extends Actor {
     case Greet =>
       // send greeting message
       printerActor ! Greeting(greeting)
-  }
-}
-
-/** printer-companion
-  *
-  */
-object Printer {
-  def props: Props = Props[Printer]
-
-  /** printer-messages
-    *
-    * @param greeting String used for logging
-    */
-  final case class Greeting(greeting: String)
-
-}
-
-/** printer-actor
-  *
-  */
-class Printer extends Actor with ActorLogging {
-
-  import Printer._
-
-  def receive: Receive = {
-    case Greeting(greeting) =>
-      log.info(s"Greeting received (from ${ sender() }): $greeting")
   }
 }
 
