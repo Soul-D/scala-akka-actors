@@ -20,7 +20,7 @@ class AkkaQuickstartSpec(_system: ActorSystem)
     shutdown(system)
   }
 
-  // pecification-example
+  // specification-example
   "A Greeter Actor" should "pass on a greeting message when instructed to" in {
     //#specification-example
     val testProbe = TestProbe()
