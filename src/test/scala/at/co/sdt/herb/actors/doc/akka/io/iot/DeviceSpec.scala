@@ -163,13 +163,31 @@ class DeviceSpec(_system: ActorSystem)
     deviceManager.tell(DeviceManager.RequestTrackDevice("grp1", "dev2"), probe.ref)
     probe.expectMsg(DeviceManager.DeviceRegistered)
     val deviceActor2 = probe.lastSender
+
+    deviceManager.tell(DeviceManager.RequestTrackDevice("grp2", "dev1"), probe.ref)
+    probe.expectMsg(DeviceManager.DeviceRegistered)
+    val deviceActor3 = probe.lastSender
+
+    deviceManager.tell(DeviceManager.RequestTrackDevice("grp2", "dev2"), probe.ref)
+    probe.expectMsg(DeviceManager.DeviceRegistered)
+    val deviceActor4 = probe.lastSender
+
     deviceActor1 should !==(deviceActor2)
+    deviceActor1 should !==(deviceActor3)
+    deviceActor1 should !==(deviceActor4)
+    deviceActor2 should !==(deviceActor3)
+    deviceActor2 should !==(deviceActor4)
+    deviceActor3 should !==(deviceActor4)
 
     // Check that the device actors are working
     deviceActor1.tell(Device.RecordTemperature(requestId = 0, 1.0), probe.ref)
     probe.expectMsg(Device.TemperatureRecorded(requestId = 0))
     deviceActor2.tell(Device.RecordTemperature(requestId = 1, 2.0), probe.ref)
     probe.expectMsg(Device.TemperatureRecorded(requestId = 1))
+    deviceActor3.tell(Device.RecordTemperature(requestId = 2, 3.0), probe.ref)
+    probe.expectMsg(Device.TemperatureRecorded(requestId = 2))
+    deviceActor4.tell(Device.RecordTemperature(requestId = 3, 4.0), probe.ref)
+    probe.expectMsg(Device.TemperatureRecorded(requestId = 3))
   }
 
   it should "return same actor for same deviceId" in {
@@ -184,7 +202,16 @@ class DeviceSpec(_system: ActorSystem)
     probe.expectMsg(DeviceManager.DeviceRegistered)
     val deviceActor2 = probe.lastSender
 
+    deviceManager.tell(DeviceManager.RequestTrackDevice("grp2", "dev1"), probe.ref)
+    probe.expectMsg(DeviceManager.DeviceRegistered)
+    val deviceActor3 = probe.lastSender
+
+    deviceManager.tell(DeviceManager.RequestTrackDevice("grp2", "dev1"), probe.ref)
+    probe.expectMsg(DeviceManager.DeviceRegistered)
+    val deviceActor4 = probe.lastSender
+
     deviceActor1 should ===(deviceActor2)
+    deviceActor3 should ===(deviceActor4)
   }
 
 
