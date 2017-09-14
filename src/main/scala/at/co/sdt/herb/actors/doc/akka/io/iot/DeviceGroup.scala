@@ -12,12 +12,27 @@ object DeviceGroup {
 
   final case class ReplyDeviceList(requestId: Long, ids: Set[String])
 
+  final case class RequestAllTemperatures(requestId: Long)
+
+  final case class RespondAllTemperatures(requestId: Long, temperatures: Map[String, TemperatureReading])
+
+  sealed trait TemperatureReading
+
+  final case class Temperature(value: Double) extends TemperatureReading
+
+  case object TemperatureNotAvailable extends TemperatureReading
+
+  case object DeviceNotAvailable extends TemperatureReading
+
+  case object DeviceTimedOut extends TemperatureReading
+
 }
 
 class DeviceGroup(groupId: String) extends Actor with ActorLogging {
   // use a variable with an immutable Map
   var deviceIdToActor = Map.empty[String, ActorRef]
   var actorToDeviceId = Map.empty[ActorRef, String]
+  var nextCollectionId = 0L
 
   override def preStart(): Unit = log.info("DeviceGroup {} started", groupId)
 
@@ -51,5 +66,16 @@ class DeviceGroup(groupId: String) extends Actor with ActorLogging {
       log.info("Device actor for {} has been terminated", deviceId)
       actorToDeviceId -= deviceActor
       deviceIdToActor -= deviceId
+
+    case RequestAllTemperatures(requestId) =>
+
+      import scala.concurrent.duration._
+
+      context.actorOf(DeviceGroupQuery.props(
+        actorToDeviceId = actorToDeviceId,
+        requestId = requestId,
+        requester = sender(),
+        3.seconds
+      ))
   }
 }
