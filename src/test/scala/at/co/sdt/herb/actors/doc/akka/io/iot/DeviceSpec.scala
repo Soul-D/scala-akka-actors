@@ -2,8 +2,10 @@ package at.co.sdt.herb.actors.doc.akka.io.iot
 
 import org.scalatest.{ BeforeAndAfterAll, FlatSpecLike, Matchers }
 
-import akka.actor.ActorSystem
+import akka.actor.{ ActorSystem, PoisonPill }
 import akka.testkit.{ TestKit, TestProbe }
+
+import scala.concurrent.duration._
 
 class DeviceSpec(_system: ActorSystem)
   extends TestKit(_system)
@@ -19,7 +21,7 @@ class DeviceSpec(_system: ActorSystem)
 
   "A Device actor" should "reply with empty reading if no temperature is known" in {
     val probe = TestProbe()
-    val deviceActor = system.actorOf(Device.props("group", "device"))
+    val deviceActor = system.actorOf(Device.props("gr1", "dev1"))
 
     deviceActor.tell(Device.ReadTemperature(requestId = 42), probe.ref)
     val response = probe.expectMsgType[Device.RespondTemperature]
@@ -29,7 +31,7 @@ class DeviceSpec(_system: ActorSystem)
 
   it should "reply with latest temperature reading" in {
     val probe = TestProbe()
-    val deviceActor = system.actorOf(Device.props("group", "device"))
+    val deviceActor = system.actorOf(Device.props("gr1", "dev1"))
 
     deviceActor.tell(Device.RecordTemperature(requestId = 1, 24.0), probe.ref)
     probe.expectMsg(Device.TemperatureRecorded(requestId = 1))
@@ -47,4 +49,143 @@ class DeviceSpec(_system: ActorSystem)
     response2.requestId should ===(4)
     response2.value should ===(Some(55.0))
   }
+
+  it should "reply to registration requests" in {
+    val probe = TestProbe()
+    val deviceActor = system.actorOf(Device.props("gr1", "dev1"))
+
+    deviceActor.tell(DeviceManager.RequestTrackDevice("gr1", "dev1"), probe.ref)
+    probe.expectMsg(DeviceManager.DeviceRegistered)
+    probe.lastSender should ===(deviceActor)
+  }
+
+  it should "ignore wrong registration requests" in {
+    val probe = TestProbe()
+    val deviceActor = system.actorOf(Device.props("gr1", "dev1"))
+
+    deviceActor.tell(DeviceManager.RequestTrackDevice("wrongGroup", "dev1"), probe.ref)
+    probe.expectNoMsg(500.milliseconds)
+
+    deviceActor.tell(DeviceManager.RequestTrackDevice("gr1", "Wrongdevice"), probe.ref)
+    probe.expectNoMsg(500.milliseconds)
+  }
+
+  "A DeviceGroup" should "be able to register a device actor" in {
+    val probe = TestProbe()
+    val groupActor = system.actorOf(DeviceGroup.props("grp1"))
+
+    groupActor.tell(DeviceManager.RequestTrackDevice("grp1", "dev1"), probe.ref)
+    probe.expectMsg(DeviceManager.DeviceRegistered)
+    val deviceActor1 = probe.lastSender
+
+    groupActor.tell(DeviceManager.RequestTrackDevice("grp1", "dev2"), probe.ref)
+    probe.expectMsg(DeviceManager.DeviceRegistered)
+    val deviceActor2 = probe.lastSender
+    deviceActor1 should !==(deviceActor2)
+
+    // Check that the device actors are working
+    deviceActor1.tell(Device.RecordTemperature(requestId = 0, 1.0), probe.ref)
+    probe.expectMsg(Device.TemperatureRecorded(requestId = 0))
+    deviceActor2.tell(Device.RecordTemperature(requestId = 1, 2.0), probe.ref)
+    probe.expectMsg(Device.TemperatureRecorded(requestId = 1))
+  }
+
+  it should "ignore requests for wrong groupId" in {
+    val probe = TestProbe()
+    val groupActor = system.actorOf(DeviceGroup.props("grp1"))
+
+    groupActor.tell(DeviceManager.RequestTrackDevice("wrongGroup", "dev1"), probe.ref)
+    probe.expectNoMsg(500.milliseconds)
+  }
+
+  it should "return same actor for same deviceId" in {
+    val probe = TestProbe()
+    val groupActor = system.actorOf(DeviceGroup.props("grp1"))
+
+    groupActor.tell(DeviceManager.RequestTrackDevice("grp1", "dev1"), probe.ref)
+    probe.expectMsg(DeviceManager.DeviceRegistered)
+    val deviceActor1 = probe.lastSender
+
+    groupActor.tell(DeviceManager.RequestTrackDevice("grp1", "dev1"), probe.ref)
+    probe.expectMsg(DeviceManager.DeviceRegistered)
+    val deviceActor2 = probe.lastSender
+
+    deviceActor1 should ===(deviceActor2)
+  }
+
+  it should "be able to list active devices" in {
+    val probe = TestProbe()
+    val groupActor = system.actorOf(DeviceGroup.props("grp1"))
+
+    groupActor.tell(DeviceManager.RequestTrackDevice("grp1", "dev1"), probe.ref)
+    probe.expectMsg(DeviceManager.DeviceRegistered)
+
+    groupActor.tell(DeviceManager.RequestTrackDevice("grp1", "dev2"), probe.ref)
+    probe.expectMsg(DeviceManager.DeviceRegistered)
+
+    groupActor.tell(DeviceGroup.RequestDeviceList(requestId = 0), probe.ref)
+    probe.expectMsg(DeviceGroup.ReplyDeviceList(requestId = 0, Set("dev1", "dev2")))
+  }
+
+  it should "be able to list active devices after one shuts down" in {
+    val probe = TestProbe()
+    val groupActor = system.actorOf(DeviceGroup.props("grp1"))
+
+    groupActor.tell(DeviceManager.RequestTrackDevice("grp1", "dev1"), probe.ref)
+    probe.expectMsg(DeviceManager.DeviceRegistered)
+    val toShutDown = probe.lastSender
+
+    groupActor.tell(DeviceManager.RequestTrackDevice("grp1", "dev2"), probe.ref)
+    probe.expectMsg(DeviceManager.DeviceRegistered)
+
+    groupActor.tell(DeviceGroup.RequestDeviceList(requestId = 0), probe.ref)
+    probe.expectMsg(DeviceGroup.ReplyDeviceList(requestId = 0, Set("dev1", "dev2")))
+
+    probe.watch(toShutDown)
+    toShutDown ! PoisonPill
+    probe.expectTerminated(toShutDown)
+
+    // using awaitAssert to retry because it might take longer for the groupActor
+    // to see the Terminated, that order is undefined
+    probe.awaitAssert {
+      groupActor.tell(DeviceGroup.RequestDeviceList(requestId = 1), probe.ref)
+      probe.expectMsg(DeviceGroup.ReplyDeviceList(requestId = 1, Set("dev2")))
+    }
+  }
+  "A DeviceManager" should "be able to register a device actor" in {
+    val probe = TestProbe()
+    val deviceManager = system.actorOf(DeviceManager.props)
+
+    deviceManager.tell(DeviceManager.RequestTrackDevice("grp1", "dev1"), probe.ref)
+    probe.expectMsg(DeviceManager.DeviceRegistered)
+    val deviceActor1 = probe.lastSender
+
+    deviceManager.tell(DeviceManager.RequestTrackDevice("grp1", "dev2"), probe.ref)
+    probe.expectMsg(DeviceManager.DeviceRegistered)
+    val deviceActor2 = probe.lastSender
+    deviceActor1 should !==(deviceActor2)
+
+    // Check that the device actors are working
+    deviceActor1.tell(Device.RecordTemperature(requestId = 0, 1.0), probe.ref)
+    probe.expectMsg(Device.TemperatureRecorded(requestId = 0))
+    deviceActor2.tell(Device.RecordTemperature(requestId = 1, 2.0), probe.ref)
+    probe.expectMsg(Device.TemperatureRecorded(requestId = 1))
+  }
+
+  it should "return same actor for same deviceId" in {
+    val probe = TestProbe()
+    val deviceManager = system.actorOf(DeviceManager.props)
+
+    deviceManager.tell(DeviceManager.RequestTrackDevice("grp1", "dev1"), probe.ref)
+    probe.expectMsg(DeviceManager.DeviceRegistered)
+    val deviceActor1 = probe.lastSender
+
+    deviceManager.tell(DeviceManager.RequestTrackDevice("grp1", "dev1"), probe.ref)
+    probe.expectMsg(DeviceManager.DeviceRegistered)
+    val deviceActor2 = probe.lastSender
+
+    deviceActor1 should ===(deviceActor2)
+  }
+
+
 }

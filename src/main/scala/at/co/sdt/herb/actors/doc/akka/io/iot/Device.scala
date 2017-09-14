@@ -3,7 +3,7 @@ package at.co.sdt.herb.actors.doc.akka.io.iot
 import akka.actor.{ Actor, ActorLogging, Props }
 
 object Device {
-  def props(groupId: String, deviceId: String): Props = Props(new Device(groupId, deviceId))
+  def props(groupId: String, deviceId: String): Props = Props(classOf[Device], groupId, deviceId)
 
   final case class RecordTemperature(requestId: Long, value: Double)
 
@@ -26,6 +26,15 @@ class Device(groupId: String, deviceId: String) extends Actor with ActorLogging 
   override def postStop(): Unit = log.info("Device actor {}-{} stopped", groupId, deviceId)
 
   override def receive: Receive = {
+    case DeviceManager.RequestTrackDevice(`groupId`, `deviceId`) =>
+      sender() ! DeviceManager.DeviceRegistered
+
+    case DeviceManager.RequestTrackDevice(grp, id) =>
+      log.warning(
+        "Ignoring TrackDevice request for {}-{}. This actor is responsible for {}-{}.",
+        grp, id, this.groupId, this.deviceId
+      )
+
     case RecordTemperature(id, value) =>
       log.info("Recorded temperature reading {} with {}", value, id)
       lastTemperatureReading = Some(value)
