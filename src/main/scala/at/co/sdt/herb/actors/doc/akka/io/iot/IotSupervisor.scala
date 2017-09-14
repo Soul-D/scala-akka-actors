@@ -3,7 +3,7 @@ package at.co.sdt.herb.actors.doc.akka.io.iot
 import akka.actor.{ Actor, ActorLogging, Props }
 
 object IotSupervisor {
-  def props(): Props = Props(new IotSupervisor)
+  def props(): Props = Props[IotSupervisor]
 }
 
 class IotSupervisor extends Actor with ActorLogging {
