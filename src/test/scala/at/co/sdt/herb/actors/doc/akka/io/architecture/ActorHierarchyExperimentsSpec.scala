@@ -2,7 +2,7 @@ package at.co.sdt.herb.actors.doc.akka.io.architecture
 
 import org.scalatest.{ BeforeAndAfterAll, FlatSpecLike, Matchers }
 
-import akka.actor.{ ActorIdentity, ActorSelection, ActorSystem, Identify }
+import akka.actor.{ ActorIdentity, ActorSelection, ActorSystem, Identify, PoisonPill }
 import akka.testkit.{ TestKit, TestProbe }
 
 import scala.concurrent.duration._
@@ -22,7 +22,7 @@ class ActorHierarchyExperimentsSpec(_system: ActorSystem)
   val firstName = "first-actor"
   val secondName = "second-actor"
 
-  "There" should "be no second-actor upon start" in {
+  "A PrintMyActorRefActor" should "not start a \"second-actor\" upon start" in {
     val firstActor = system.actorOf(PrintMyActorRefActor.props, firstName)
     val secondSel = ActorSelection(firstActor, secondName)
 
@@ -30,10 +30,13 @@ class ActorHierarchyExperimentsSpec(_system: ActorSystem)
     val id = 1
     val probe = TestProbe()
     secondSel.tell(Identify(id), probe.ref)
-    probe.expectNoMsg(500.milliseconds)
+    probe.expectMsgType[ActorIdentity](500.milliseconds) should matchPattern {
+      case ActorIdentity(`id`, None) =>
+    }
+    firstActor ! PoisonPill
   }
 
-  "A PrintMyActorRefActor" should "create an empty actor silently upon receiving a PrintIt message" in {
+  it should "create a \"second-actor\" silently upon receiving a PrintIt message" in {
     val firstActor = system.actorOf(PrintMyActorRefActor.props, firstName)
     val secondSel = ActorSelection(firstActor, secondName)
 
@@ -49,11 +52,6 @@ class ActorHierarchyExperimentsSpec(_system: ActorSystem)
     probe.expectMsgType[ActorIdentity](500.milliseconds) should matchPattern {
       case ActorIdentity(`id2`, Some(actorRef)) if actorRef.path.toString contains secondPath =>
     }
-
-    // TODO: a second actor named "second-actor" must not be started
-    /* val firstId1 = firstActor.toString()
-    firstActor.tell(PrintIt, probe.ref)
-    val firstId2 = firstActor.toString()
-    firstId1 should not be firstId2 of course the ActorRef is the same */
+    firstActor ! PoisonPill
   }
 }
