@@ -21,7 +21,7 @@ class FailureHandlingSpec(_system: ActorSystem)
 
   private val supervisorName = "superVisor"
   private val childName = "supervised-actor"
-  private val waitForChildAfterSupervisor: Long = 25
+  private val waitForChildAfterSupervisor: Long = 50
 
   "A SupervisedActor" should "fail on Fail message" in {
     val probe = TestProbe()
