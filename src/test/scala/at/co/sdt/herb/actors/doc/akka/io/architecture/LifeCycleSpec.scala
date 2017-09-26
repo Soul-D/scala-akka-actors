@@ -28,10 +28,10 @@ class LifeCycleSpec(_system: ActorSystem)
     val first = system.actorOf(Props[StartStopActor1], StartStopActor1.firstName)
     Thread.sleep(waitForStart)
 
+
     try {
-      getSecond(first, probe) match {
+      getSecond(first, probe) should matchPattern {
         case Some(_: ActorRef) =>
-        case _ => assert(false, s"${ StartStopActor1.secondName } not available")
       }
     } finally {
       first ! PoisonPill
