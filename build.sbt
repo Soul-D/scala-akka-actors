@@ -11,3 +11,6 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
   "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 )
+
+parallelExecution in Test := false
+// parallelExecution in Compile := false

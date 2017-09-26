@@ -1,6 +1,6 @@
 package at.co.sdt.herb.actors.doc.akka.io.architecture
 
-import akka.actor.{Actor, ActorRef, ActorSystem, PoisonPill, Props}
+import akka.actor.{ Actor, ActorRef, ActorSystem, PoisonPill, Props }
 
 case object Fail
 
@@ -10,8 +10,13 @@ case object Stop
 
 case object StopChild
 
+object SupervisingActor {
+  val name = "superVisor"
+  val childName = "supervised-actor"
+}
+
 class SupervisingActor extends Actor {
-  val child: ActorRef = context.actorOf(Props[SupervisedActor], "supervised-actor")
+  val child: ActorRef = context.actorOf(Props[SupervisedActor], SupervisingActor.childName)
   println(s"child created: $child")
 
   override def preStart(): Unit = println("superVisor started")
@@ -44,7 +49,7 @@ class SupervisedActor extends Actor {
 object FailureHandling extends App {
   val system = ActorSystem()
 
-  val superVisor = system.actorOf(Props[SupervisingActor], "superVisor")
+  val superVisor = system.actorOf(Props[SupervisingActor], SupervisingActor.name)
   superVisor ! FailChild
   Thread.sleep(100L)
   superVisor ! Fail

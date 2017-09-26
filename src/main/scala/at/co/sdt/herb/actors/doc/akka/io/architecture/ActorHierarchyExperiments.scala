@@ -8,13 +8,16 @@ case object PrintIt
 
 object PrintMyActorRefActor {
   def props: Props = Props[PrintMyActorRefActor]
+
+  val firstName = "first-actor"
+  val secondName = "second-actor"
 }
 
 class PrintMyActorRefActor extends Actor {
 
   override def receive: Receive = {
     case PrintIt =>
-      val secondRef = context.actorOf(Props.empty, "second-actor")
+      val secondRef = context.actorOf(Props.empty, PrintMyActorRefActor.secondName)
       println(s"Second: $secondRef")
   }
 }
@@ -22,7 +25,7 @@ class PrintMyActorRefActor extends Actor {
 object ActorHierarchyExperiments extends App {
   val system = ActorSystem()
 
-  val firstRef = system.actorOf(PrintMyActorRefActor.props, "first-actor")
+  val firstRef = system.actorOf(PrintMyActorRefActor.props, PrintMyActorRefActor.firstName)
   println(s"First: $firstRef")
   firstRef ! PrintIt
 

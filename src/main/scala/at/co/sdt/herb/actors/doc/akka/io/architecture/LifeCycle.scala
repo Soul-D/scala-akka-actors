@@ -4,13 +4,18 @@ import akka.actor.{ Actor, ActorSystem, Props }
 
 import scala.io.StdIn
 
+object StartStopActor1 {
+  val firstName = "first"
+  val secondName = "second"
+}
+
 class StartStopActor1 extends Actor {
   override def preStart(): Unit = {
-    println("first started")
-    context.actorOf(Props[StartStopActor2], "second")
+    println(s"${ self.path } started")
+    context.actorOf(Props[StartStopActor2], StartStopActor1.secondName)
   }
 
-  override def postStop(): Unit = println("first stopped")
+  override def postStop(): Unit = println(s"${ self.path } stopped")
 
   override def receive: Receive = {
     case Stop => context.stop(self)
@@ -18,9 +23,9 @@ class StartStopActor1 extends Actor {
 }
 
 class StartStopActor2 extends Actor {
-  override def preStart(): Unit = println("second started")
+  override def preStart(): Unit = println(s"${ self.path } started")
 
-  override def postStop(): Unit = println("second stopped")
+  override def postStop(): Unit = println(s"${ self.path } stopped")
 
   // Actor.emptyBehavior is a useful placeholder when we don't
   // want to handle any messages in the actor.
@@ -30,7 +35,7 @@ class StartStopActor2 extends Actor {
 object LifeCycle extends App {
   val system = ActorSystem()
 
-  val first = system.actorOf(Props[StartStopActor1], "first")
+  val first = system.actorOf(Props[StartStopActor1], StartStopActor1.firstName)
   first ! Stop
 
   Thread.sleep(100L)

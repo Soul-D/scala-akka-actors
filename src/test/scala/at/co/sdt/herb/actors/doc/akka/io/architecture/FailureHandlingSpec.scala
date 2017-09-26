@@ -19,13 +19,12 @@ class FailureHandlingSpec(_system: ActorSystem)
     shutdown(system)
   }
 
-  private val supervisorName = "superVisor"
-  private val childName = "supervised-actor"
-  private val waitForChildAfterSupervisor: Long = 50
+  private val waitForStart: Long = 50
+  private val waitForStop: Long = 25
 
   "A SupervisedActor" should "fail on Fail message" in {
     val probe = TestProbe()
-    val supervised = system.actorOf(Props[SupervisedActor], childName)
+    val supervised = system.actorOf(Props[SupervisedActor], SupervisingActor.childName)
     try {
       supervised ! Fail
 
@@ -38,25 +37,27 @@ class FailureHandlingSpec(_system: ActorSystem)
     }
     finally {
       supervised ! PoisonPill
+      Thread.sleep(waitForStop)
     }
 
   }
 
   it should "stop on Stop message" in {
     val probe = TestProbe()
-    val supervised = system.actorOf(Props[SupervisedActor], childName)
+    val supervised = system.actorOf(Props[SupervisedActor], SupervisingActor.childName)
     try {
       probe.watch(supervised)
       supervised ! Stop
       probe.expectTerminated(supervised)
     } finally {
       supervised ! PoisonPill
+      Thread.sleep(waitForStop)
     }
   }
 
   "A SupervisingActor" should "throw an exception on Fail" in {
     val probe = TestProbe()
-    val supervisor = system.actorOf(Props[SupervisingActor], supervisorName)
+    val supervisor = system.actorOf(Props[SupervisingActor], SupervisingActor.name)
 
     try {
       // probe.watch(supervisor)
@@ -69,12 +70,13 @@ class FailureHandlingSpec(_system: ActorSystem)
       }
     } finally {
       supervisor ! PoisonPill
+      Thread.sleep(waitForStop)
     }
   }
 
   it should "let child fail on FailChild" in {
     val probe = TestProbe()
-    val supervisor = system.actorOf(Props[SupervisingActor], supervisorName)
+    val supervisor = system.actorOf(Props[SupervisingActor], SupervisingActor.name)
 
     try {
       val child = getChild(supervisor, probe).get
@@ -87,14 +89,15 @@ class FailureHandlingSpec(_system: ActorSystem)
       }
     } finally {
       supervisor ! PoisonPill
+      Thread.sleep(waitForStop)
     }
   }
 
   it should "stop on Stop" in {
     val probe1 = TestProbe()
     val probe2 = TestProbe()
-    val supervisor = system.actorOf(Props[SupervisingActor], supervisorName)
-    Thread.sleep(waitForChildAfterSupervisor)
+    val supervisor = system.actorOf(Props[SupervisingActor], SupervisingActor.name)
+    Thread.sleep(waitForStart)
 
     try {
       val child = getChild(supervisor, probe2).get
@@ -107,13 +110,14 @@ class FailureHandlingSpec(_system: ActorSystem)
       probe2.expectTerminated(child)
     } finally {
       supervisor ! PoisonPill
+      Thread.sleep(waitForStop)
     }
   }
 
   it should "stop child on StopChild" in {
     val probe = TestProbe()
-    val supervisor = system.actorOf(Props[SupervisingActor], supervisorName)
-    Thread.sleep(waitForChildAfterSupervisor)
+    val supervisor = system.actorOf(Props[SupervisingActor], SupervisingActor.name)
+    Thread.sleep(waitForStart)
 
     try {
       val child = getChild(supervisor, probe).get
@@ -127,12 +131,12 @@ class FailureHandlingSpec(_system: ActorSystem)
 
   private def getChild(supervisor: ActorRef, probe: TestProbe): Option[ActorRef] = {
     val id2 = System.currentTimeMillis()
-    val childSel = ActorSelection(supervisor, childName)
+    val childSel = ActorSelection(supervisor, SupervisingActor.childName)
     childSel.tell(Identify(id2), probe.ref)
     val answer = probe.expectMsgType[ActorIdentity](500.milliseconds)
     println(s"answer received: $answer")
     answer match {
-      case ActorIdentity(`id2`, Some(child)) if child.path.toString contains childName => Some(child)
+      case ActorIdentity(`id2`, Some(child)) if child.path.toString contains SupervisingActor.childName => Some(child)
       case m =>
         println(s"m $m received")
         None

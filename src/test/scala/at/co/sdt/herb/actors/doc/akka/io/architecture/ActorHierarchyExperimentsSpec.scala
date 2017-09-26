@@ -19,12 +19,12 @@ class ActorHierarchyExperimentsSpec(_system: ActorSystem)
     shutdown(system)
   }
 
-  val firstName = "first-actor"
-  val secondName = "second-actor"
+  private val waitForStart: Long = 50
+  private val waitForStop: Long = 25
 
   "A PrintMyActorRefActor" should "not start a \"second-actor\" upon start" in {
-    val firstActor = system.actorOf(PrintMyActorRefActor.props, firstName)
-    val secondSel = ActorSelection(firstActor, secondName)
+    val firstActor = system.actorOf(PrintMyActorRefActor.props, PrintMyActorRefActor.firstName)
+    val secondSel = ActorSelection(firstActor, PrintMyActorRefActor.secondName)
 
     // there should be no actor named "second-actor"
     val id = 1
@@ -34,11 +34,12 @@ class ActorHierarchyExperimentsSpec(_system: ActorSystem)
       case ActorIdentity(`id`, None) =>
     }
     firstActor ! PoisonPill
+    Thread.sleep(waitForStop)
   }
 
   it should "create a \"second-actor\" silently upon receiving a PrintIt message" in {
-    val firstActor = system.actorOf(PrintMyActorRefActor.props, firstName)
-    val secondSel = ActorSelection(firstActor, secondName)
+    val firstActor = system.actorOf(PrintMyActorRefActor.props, PrintMyActorRefActor.firstName)
+    val secondSel = ActorSelection(firstActor, PrintMyActorRefActor.secondName)
 
     val probe = TestProbe()
     // firstActor must not respond
@@ -47,11 +48,12 @@ class ActorHierarchyExperimentsSpec(_system: ActorSystem)
 
     // there should be an actor with path "first-actor/second-actor"
     val id2 = 2
-    val secondPath = s"$firstName/$secondName"
+    val secondPath = s"${ PrintMyActorRefActor.firstName }/${ PrintMyActorRefActor.secondName }"
     secondSel.tell(Identify(id2), probe.ref)
     probe.expectMsgType[ActorIdentity](500.milliseconds) should matchPattern {
       case ActorIdentity(`id2`, Some(actorRef)) if actorRef.path.toString contains secondPath =>
     }
     firstActor ! PoisonPill
+    Thread.sleep(waitForStop)
   }
 }
