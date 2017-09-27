@@ -1,15 +1,10 @@
 name := "scala-akka-actors"
 
-version := "1.1.0"
-
-scalaVersion := "2.12.3"
-
-lazy val akkaVersion = "2.5.4"
-
-libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-actor" % akkaVersion,
-  "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
-  "org.scalatest" %% "scalatest" % "3.0.1" % "test"
-)
-
-// parallelExecution in Test Compile Provided Runtime := false
+lazy val root = (project in file("."))
+  .settings(
+    organization := "at.co.sdt",
+    version := "1.1.1-SNAPSHOT",
+    scalaVersion := "2.12.3",
+    libraryDependencies ++= Dependencies.deps,
+    // parallelExecution in Test := false
+  )
