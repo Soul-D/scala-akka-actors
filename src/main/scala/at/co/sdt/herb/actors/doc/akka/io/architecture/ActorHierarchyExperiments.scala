@@ -1,6 +1,8 @@
 package at.co.sdt.herb.actors.doc.akka.io.architecture
 
-import akka.actor.{ Actor, ActorSystem, Props }
+import akka.actor.{ Actor, ActorLogging, ActorSystem, Props }
+
+import at.co.sdt.herb.actors.doc.akka.io.ActorInfo
 
 import scala.io.StdIn
 
@@ -13,12 +15,12 @@ object PrintMyActorRefActor {
   val secondName = "second-actor"
 }
 
-class PrintMyActorRefActor extends Actor {
+class PrintMyActorRefActor extends Actor with ActorInfo with ActorLogging {
 
   override def receive: Receive = {
     case PrintIt =>
       val secondRef = context.actorOf(Props.empty, PrintMyActorRefActor.secondName)
-      println(s"Second: $secondRef")
+      log.debug(s"$selfName has created ${ secondRef.path.name }")
   }
 }
 

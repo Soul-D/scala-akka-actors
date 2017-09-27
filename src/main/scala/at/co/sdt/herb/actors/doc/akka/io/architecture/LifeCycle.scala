@@ -1,6 +1,8 @@
 package at.co.sdt.herb.actors.doc.akka.io.architecture
 
-import akka.actor.{ Actor, ActorSystem, Props }
+import akka.actor.{ Actor, ActorLogging, ActorSystem, Props }
+
+import at.co.sdt.herb.actors.doc.akka.io.ActorInfo
 
 import scala.io.StdIn
 
@@ -9,23 +11,27 @@ object StartStopActor1 {
   val secondName = "second"
 }
 
-class StartStopActor1 extends Actor {
+
+class StartStopActor1 extends Actor with ActorInfo with ActorLogging {
+
   override def preStart(): Unit = {
-    println(s"${ self.path } started")
+
+    log.info(s"$selfName started")
     context.actorOf(Props[StartStopActor2], StartStopActor1.secondName)
   }
 
-  override def postStop(): Unit = println(s"${ self.path } stopped")
+  override def postStop(): Unit = log.debug(s"$selfName stopped")
 
   override def receive: Receive = {
     case Stop => context.stop(self)
   }
 }
 
-class StartStopActor2 extends Actor {
-  override def preStart(): Unit = println(s"${ self.path } started")
+class StartStopActor2 extends Actor with ActorInfo with ActorLogging {
 
-  override def postStop(): Unit = println(s"${ self.path } stopped")
+  override def preStart(): Unit = log.debug(s"$selfName started")
+
+  override def postStop(): Unit = log.debug(s"$selfName stopped")
 
   // Actor.emptyBehavior is a useful placeholder when we don't
   // want to handle any messages in the actor.
