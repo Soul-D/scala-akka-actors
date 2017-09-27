@@ -1,4 +1,4 @@
-package at.co.sdt.herb.actors.doc.akka.io
+package at.co.sdt.herb.actors.doc.akka.io.quickstart
 
 import org.scalatest.{ BeforeAndAfterAll, FlatSpecLike, Matchers }
 
@@ -20,9 +20,8 @@ class AkkaQuickstartSpec(_system: ActorSystem)
     shutdown(system)
   }
 
-  // specification-example
+  // Specification-example
   "A Greeter Actor" should "pass on a greeting message when instructed to" in {
-    //#specification-example
     val testProbe = TestProbe()
     val helloGreetingMessage = "hello"
     val helloGreeter = system.actorOf(Greeter.props(helloGreetingMessage, testProbe.ref))

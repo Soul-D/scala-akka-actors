@@ -1,6 +1,6 @@
 name := "scala-akka-actors"
 
-version := "1.0.0"
+version := "1.1.0"
 
 scalaVersion := "2.12.3"
 
@@ -11,3 +11,5 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
   "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 )
+
+// parallelExecution in Test Compile Provided Runtime := false
