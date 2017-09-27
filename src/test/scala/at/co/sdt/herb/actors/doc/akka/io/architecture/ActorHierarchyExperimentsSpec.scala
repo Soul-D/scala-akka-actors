@@ -19,7 +19,7 @@ class ActorHierarchyExperimentsSpec(_system: ActorSystem)
     shutdown(system)
   }
 
-  private val waitForStart: Long = 50
+  // private val waitForStart: Long = 50
   private val waitForStop: Long = 25
 
   "A PrintMyActorRefActor" should "not start a \"second-actor\" upon start" in {

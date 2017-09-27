@@ -23,20 +23,17 @@ class LifeCycleSpec(_system: ActorSystem)
   private val waitForStart: Long = 50
   private val waitForStop: Long = 25
 
-  "A StartStopActor1" should "create a second upon creation" in {
+  "A StartStopActor1" should "create a second one upon creation" in {
     val probe = TestProbe()
     val first = system.actorOf(Props[StartStopActor1], StartStopActor1.firstName)
     Thread.sleep(waitForStart)
 
-
-    try {
-      getSecond(first, probe) should matchPattern {
-        case Some(_: ActorRef) =>
-      }
-    } finally {
-      first ! PoisonPill
-      Thread.sleep(waitForStop)
+    getSecond(first, probe) should matchPattern {
+      case Some(_: ActorRef) =>
     }
+
+    first ! PoisonPill
+    Thread.sleep(waitForStop)
   }
 
   it should "stop the second actor upon Stop" in {

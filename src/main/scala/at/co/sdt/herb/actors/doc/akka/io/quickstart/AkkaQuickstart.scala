@@ -35,7 +35,7 @@ class Printer extends Actor with ActorLogging {
   *
   */
 object Greeter {
-  def props(message: String, printerActor: ActorRef): Props = Props(new Greeter(message, printerActor))
+  def props(message: String, printerActor: ActorRef): Props = Props(classOf[Greeter], message, printerActor)
 
   // greeter-messages
   final case class WhoToGreet(who: String)

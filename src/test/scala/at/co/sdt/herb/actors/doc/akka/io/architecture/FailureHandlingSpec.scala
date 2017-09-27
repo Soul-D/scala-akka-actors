@@ -45,6 +45,8 @@ class FailureHandlingSpec(_system: ActorSystem)
   it should "stop on Stop message" in {
     val probe = TestProbe()
     val supervised = system.actorOf(Props[SupervisedActor], SupervisingActor.childName)
+    Thread.sleep(waitForStart)
+
     try {
       probe.watch(supervised)
       supervised ! Stop
@@ -58,6 +60,7 @@ class FailureHandlingSpec(_system: ActorSystem)
   "A SupervisingActor" should "throw an exception on Fail" in {
     val probe = TestProbe()
     val supervisor = system.actorOf(Props[SupervisingActor], SupervisingActor.name)
+    Thread.sleep(waitForStart)
 
     try {
       // probe.watch(supervisor)
@@ -77,6 +80,7 @@ class FailureHandlingSpec(_system: ActorSystem)
   it should "let child fail on FailChild" in {
     val probe = TestProbe()
     val supervisor = system.actorOf(Props[SupervisingActor], SupervisingActor.name)
+    Thread.sleep(waitForStart)
 
     try {
       val child = getChild(supervisor, probe).get
