@@ -1,6 +1,8 @@
 package at.co.sdt.herb.actors.doc.akka.io.architecture
 
-import akka.actor.{ Actor, ActorRef, ActorSystem, PoisonPill, Props }
+import akka.actor.{ Actor, ActorLogging, ActorRef, ActorSystem, PoisonPill, Props }
+
+import at.co.sdt.herb.actors.doc.akka.io.ActorInfo
 
 case object Fail
 
@@ -15,17 +17,17 @@ object SupervisingActor {
   val childName = "supervised-actor"
 }
 
-class SupervisingActor extends Actor {
+class SupervisingActor extends Actor with ActorLogging {
   val child: ActorRef = context.actorOf(Props[SupervisedActor], SupervisingActor.childName)
-  println(s"child created: $child")
+  log.debug(s"child created: $child")
 
-  override def preStart(): Unit = println("superVisor started")
+  override def preStart(): Unit = log.debug("superVisor started")
 
-  override def postStop(): Unit = println("superVisor stopped")
+  override def postStop(): Unit = log.debug("superVisor stopped")
 
   override def receive: Receive = {
     case Fail =>
-      println("superVisor fails now")
+      log.debug("superVisor fails now")
       throw new Exception("superVisor failed!")
     case FailChild => child ! Fail
     case Stop => context.stop(self)
@@ -33,15 +35,15 @@ class SupervisingActor extends Actor {
   }
 }
 
-class SupervisedActor extends Actor {
-  override def preStart(): Unit = println("supervised actor started")
+class SupervisedActor extends Actor with ActorInfo with ActorLogging {
+  override def preStart(): Unit = log.debug(s"$selfName started")
 
-  override def postStop(): Unit = println("supervised actor stopped")
+  override def postStop(): Unit = log.debug(s"$selfName stopped")
 
   override def receive: Receive = {
     case Fail =>
-      println("supervised actor fails now")
-      throw new Exception("supervised actor failed!")
+      log.debug(s"$selfName fails now")
+      throw new Exception(s"$selfName failed!")
     case Stop => context.stop(self)
   }
 }

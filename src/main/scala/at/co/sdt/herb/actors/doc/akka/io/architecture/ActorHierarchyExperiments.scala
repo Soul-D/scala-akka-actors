@@ -1,6 +1,10 @@
 package at.co.sdt.herb.actors.doc.akka.io.architecture
 
-import akka.actor.{ Actor, ActorSystem, Props }
+import com.typesafe.scalalogging.{ LazyLogging, Logger }
+
+import akka.actor.{ Actor, ActorLogging, ActorSystem, Props }
+
+import at.co.sdt.herb.actors.doc.akka.io.ActorInfo
 
 import scala.io.StdIn
 
@@ -13,20 +17,27 @@ object PrintMyActorRefActor {
   val secondName = "second-actor"
 }
 
-class PrintMyActorRefActor extends Actor {
+class PrintMyActorRefActor extends Actor with ActorInfo with ActorLogging {
 
   override def receive: Receive = {
     case PrintIt =>
       val secondRef = context.actorOf(Props.empty, PrintMyActorRefActor.secondName)
-      println(s"Second: $secondRef")
+      log.debug(s"$selfName has created ${ secondRef.path.name }")
   }
 }
 
-object ActorHierarchyExperiments extends App {
+object ActorHierarchyExperiments extends App with LazyLogging {
+  val log: Logger = Logger(getClass.getSimpleName)
+  log.trace("trace")
+  log.debug("debug")
+  log.info("info")
+  log.warn("warning")
+  log.error("error")
+
   val system = ActorSystem()
 
   val firstRef = system.actorOf(PrintMyActorRefActor.props, PrintMyActorRefActor.firstName)
-  println(s"First: $firstRef")
+  log.info(s"First: $firstRef")
   firstRef ! PrintIt
 
   println(">>> Press ENTER to exit <<<")

@@ -7,9 +7,9 @@ object IotSupervisor {
 }
 
 class IotSupervisor extends Actor with ActorLogging {
-  override def preStart(): Unit = log.info("IoT Application started")
+  override def preStart(): Unit = log.debug("IoT Application started")
 
-  override def postStop(): Unit = log.info("IoT Application stopped")
+  override def postStop(): Unit = log.debug("IoT Application stopped")
 
   // No need to handle any messages
   override def receive: Receive = Actor.emptyBehavior

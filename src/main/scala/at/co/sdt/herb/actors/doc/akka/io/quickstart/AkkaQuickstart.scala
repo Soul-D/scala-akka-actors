@@ -27,7 +27,7 @@ class Printer extends Actor with ActorLogging {
 
   def receive: Receive = {
     case Greeting(greeting) =>
-      log.info(s"Greeting received (from ${ sender() }): $greeting")
+      log.debug(s"Greeting received (from ${ sender() }): $greeting")
   }
 }
 
