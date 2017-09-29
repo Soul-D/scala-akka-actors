@@ -1,6 +1,6 @@
 package at.co.sdt.herb.actors.doc.akka.io.architecture
 
-import org.slf4j.{ Logger, LoggerFactory }
+import com.typesafe.scalalogging.{ LazyLogging, Logger }
 
 import akka.actor.{ Actor, ActorLogging, ActorSystem, Props }
 
@@ -26,8 +26,8 @@ class PrintMyActorRefActor extends Actor with ActorInfo with ActorLogging {
   }
 }
 
-object ActorHierarchyExperiments extends App {
-  val log: Logger = LoggerFactory.getLogger(getClass)
+object ActorHierarchyExperiments extends App with LazyLogging {
+  val log: Logger = Logger(getClass.getSimpleName)
   log.trace("trace")
   log.debug("debug")
   log.info("info")
