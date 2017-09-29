@@ -1,5 +1,7 @@
 package at.co.sdt.herb.actors.doc.akka.io.architecture
 
+import com.typesafe.scalalogging.{ LazyLogging, Logger }
+
 import akka.actor.{ Actor, ActorLogging, ActorSystem, Props }
 
 import at.co.sdt.herb.actors.doc.akka.io.ActorInfo
@@ -24,11 +26,18 @@ class PrintMyActorRefActor extends Actor with ActorInfo with ActorLogging {
   }
 }
 
-object ActorHierarchyExperiments extends App {
+object ActorHierarchyExperiments extends App with LazyLogging {
+  val log: Logger = Logger(getClass.getSimpleName)
+  log.trace("trace")
+  log.debug("debug")
+  log.info("info")
+  log.warn("warning")
+  log.error("error")
+
   val system = ActorSystem()
 
   val firstRef = system.actorOf(PrintMyActorRefActor.props, PrintMyActorRefActor.firstName)
-  println(s"First: $firstRef")
+  log.info(s"First: $firstRef")
   firstRef ! PrintIt
 
   println(">>> Press ENTER to exit <<<")
