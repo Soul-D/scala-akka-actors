@@ -10,6 +10,8 @@ import scala.io.StdIn
 
 case object PrintIt
 
+case object PrintContext
+
 object PrintMyActorRefActor {
   def props: Props = Props[PrintMyActorRefActor]
 
@@ -23,6 +25,14 @@ class PrintMyActorRefActor extends Actor with ActorInfo with ActorLogging {
     case PrintIt =>
       val secondRef = context.actorOf(Props.empty, PrintMyActorRefActor.secondName)
       log.debug(s"$selfName has created ${ secondRef.path.name }")
+    case PrintContext =>
+      val c = context // ist ein veränderlich!
+      log.debug(s"$selfName context is $c")
+      val s = sender() // ist nicht veränderlich
+      log.debug(s"$selfName sender is $s")
+      val parent = context.parent
+      val children = context.children
+      val child = context.child(PrintMyActorRefActor.secondName)
   }
 }
 
