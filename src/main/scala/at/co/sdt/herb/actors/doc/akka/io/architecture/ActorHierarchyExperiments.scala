@@ -2,7 +2,7 @@ package at.co.sdt.herb.actors.doc.akka.io.architecture
 
 import com.typesafe.scalalogging.{ LazyLogging, Logger }
 
-import akka.actor.{ Actor, ActorLogging, ActorSystem, Props }
+import akka.actor.{ Actor, ActorLogging, ActorRef, ActorSystem, Props }
 
 import at.co.sdt.herb.actors.doc.akka.io.ActorInfo
 
@@ -33,6 +33,13 @@ class PrintMyActorRefActor extends Actor with ActorInfo with ActorLogging {
       val parent = context.parent
       val children = context.children
       val child = context.child(PrintMyActorRefActor.secondName)
+      log.info(s"parent=$parent")
+      log.info(s"child=$child")
+      log.info(s"children=$children")
+      for (c <- children) {
+        log.info(s"child=$c")
+      }
+      children.foreach((c: ActorRef) => log.info(s"child=$c"))
   }
 }
 
@@ -49,6 +56,7 @@ object ActorHierarchyExperiments extends App with LazyLogging {
   val firstRef = system.actorOf(PrintMyActorRefActor.props, PrintMyActorRefActor.firstName)
   log.info(s"First: $firstRef")
   firstRef ! PrintIt
+  firstRef ! PrintContext
 
   println(">>> Press ENTER to exit <<<")
   try StdIn.readLine()
