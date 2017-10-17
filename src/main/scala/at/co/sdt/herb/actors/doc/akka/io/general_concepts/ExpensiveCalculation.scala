@@ -54,6 +54,9 @@ object ExpCalcDemo extends App with LazyLogging {
   import ExpensiveCalculation._
 
   val system = ActorSystem()
+  // way too much
+  // println(system.settings)
+
   val expCalc = system.actorOf(props(null, null), name)
   log.info(s"$name: $expCalc")
   for (_ <- 1 to 5) {
