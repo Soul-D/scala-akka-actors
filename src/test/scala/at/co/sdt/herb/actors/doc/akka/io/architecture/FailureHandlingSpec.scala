@@ -138,9 +138,10 @@ class FailureHandlingSpec(_system: ActorSystem)
     val childSel = ActorSelection(supervisor, SupervisingActor.childName)
     childSel.tell(Identify(id2), probe.ref)
     val answer = probe.expectMsgType[ActorIdentity](500.milliseconds)
-    println(s"answer received: $answer")
     answer match {
-      case ActorIdentity(`id2`, Some(child)) if child.path.toString contains SupervisingActor.childName => Some(child)
+      case ActorIdentity(`id2`, Some(child))
+        if child.path.parent == supervisor.path
+          && child.path.name == SupervisingActor.childName => Some(child)
       case m =>
         println(s"m $m received")
         None
