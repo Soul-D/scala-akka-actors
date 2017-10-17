@@ -59,9 +59,10 @@ class LifeCycleSpec(_system: ActorSystem)
     val childSel = ActorSelection(first, StartStopActor1.secondName)
     childSel.tell(Identify(id2), probe.ref)
     val answer = probe.expectMsgType[ActorIdentity](500.milliseconds)
-    // println(s"answer received: $answer")
     answer match {
-      case ActorIdentity(`id2`, Some(child)) if child.path.toString contains StartStopActor1.secondName => Some(child)
+      case ActorIdentity(`id2`, Some(child))
+        if child.path.parent == first.path
+          && child.path.name == StartStopActor1.secondName => Some(child)
       case m =>
         println(s"m $m received")
         None
