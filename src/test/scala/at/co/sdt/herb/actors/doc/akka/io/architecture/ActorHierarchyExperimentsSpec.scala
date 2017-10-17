@@ -48,10 +48,11 @@ class ActorHierarchyExperimentsSpec(_system: ActorSystem)
 
     // there should be an actor with path "first-actor/second-actor"
     val id2 = 2
-    val secondPath = s"${ PrintMyActorRefActor.firstName }/${ PrintMyActorRefActor.secondName }"
     secondSel.tell(Identify(id2), probe.ref)
     probe.expectMsgType[ActorIdentity](500.milliseconds) should matchPattern {
-      case ActorIdentity(`id2`, Some(actorRef)) if actorRef.path.toString contains secondPath =>
+      case ActorIdentity(`id2`, Some(actorRef))
+        if actorRef.path.parent == firstActor.path
+          && actorRef.path.name == PrintMyActorRefActor.secondName =>
     }
     firstActor ! PoisonPill
     Thread.sleep(waitForStop)

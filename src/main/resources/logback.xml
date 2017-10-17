@@ -7,7 +7,7 @@
     </appender>
 
     <!-- level may be one of: TRACE, DEBUG, INFO, WARN, ERROR . (quoted!) -->
-    <root level="WARN">
+    <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
 </configuration>
