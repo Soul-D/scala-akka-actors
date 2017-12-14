@@ -17,6 +17,6 @@ object Dependencies {
     "org.scalatest" %% "scalatest" % "3.0.1" % "test",
     // slf4jOrg % "slf4j-simple" % slf4jVersion,
     scalaLoggingOrg %% "scala-logging" % scalaLoggingVersion,
-    logbackOrg % "logback-classic" % logbackVersion,
+    logbackOrg % "logback-classic" % logbackVersion
   )
 }
