@@ -7,15 +7,17 @@ import scala.io.StdIn
 
 object Scheduler {
 
-  private case object TickKey
+  case object TickKey
 
   private case object FirstTick
 
   private case object Tick
 
-  private case object LastTick
+  case object LastTick
 
   def props: Props = Props(classOf[Scheduler])
+
+  val name = "scheduler"
 }
 
 class Scheduler extends Actor with Timers with ActorLogging {
@@ -29,16 +31,18 @@ class Scheduler extends Actor with Timers with ActorLogging {
 
   log.info(s"${ getClass.getSimpleName } started")
   timers.startSingleTimer(TickKey, FirstTick, 500.millis)
+  log.info(s"single timer for FirstTick in 500 ms started")
 
   override def receive: Receive = {
     case FirstTick =>
       timers.startPeriodicTimer(TickKey, Tick, 1.second)
-      log.info(s"timer for 1 s started")
+      log.info(s"periodic timer for Tick in 1 s started")
     case t @ Tick =>
       ticksReceived += 1
-      log.info(s"$t received")
+      log.info(s"$ticksReceived. $t received")
       if (ticksReceived >= maxTicksRecevied) {
-        timers.cancel(TickKey)
+        // timers.cancel(TickKey)
+        // log.info(s"all TickKey timers cancelled")
         self ! LastTick
       }
     case l @ LastTick =>
