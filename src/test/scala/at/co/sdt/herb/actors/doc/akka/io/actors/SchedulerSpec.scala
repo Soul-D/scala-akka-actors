@@ -2,7 +2,7 @@ package at.co.sdt.herb.actors.doc.akka.io.actors
 
 import org.scalatest.{ BeforeAndAfterAll, FlatSpecLike, Matchers }
 
-import akka.actor.{ ActorIdentity, ActorSystem, Identify, PoisonPill, Props }
+import akka.actor.{ ActorIdentity, ActorSystem, Identify, Props }
 import akka.testkit.{ TestKit, TestProbe }
 
 import scala.concurrent.duration._
@@ -34,7 +34,7 @@ class SchedulerSpec(_system: ActorSystem)
         if actorRef.path == scheduler.path =>
     }
 
-    scheduler ! PoisonPill
+    system stop scheduler
     Thread.sleep(waitForStop)
   }
 
@@ -45,6 +45,7 @@ class SchedulerSpec(_system: ActorSystem)
 
     probe.watch(scheduler)
     probe.expectTerminated(scheduler, 6.seconds)
+    Thread.sleep(waitForStop)
   }
 
   it should "stop upon LastTick" in {
@@ -55,5 +56,6 @@ class SchedulerSpec(_system: ActorSystem)
     probe.watch(scheduler)
     scheduler ! Scheduler.LastTick
     probe.expectTerminated(scheduler)
+    Thread.sleep(waitForStop)
   }
 }
