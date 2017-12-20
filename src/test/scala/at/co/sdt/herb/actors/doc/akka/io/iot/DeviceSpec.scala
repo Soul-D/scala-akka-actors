@@ -368,7 +368,7 @@ class DeviceSpec(_system: ActorSystem)
 
     groupActor.tell(DeviceManager.RequestTrackDevice("group", "device3"), probe.ref)
     probe.expectMsg(DeviceManager.DeviceRegistered)
-    val deviceActor3 = probe.lastSender
+    // val deviceActor3 = probe.lastSender
 
     // Check that the device actors are working
     deviceActor1.tell(Device.RecordTemperature(requestId = 0, 1.0), probe.ref)
