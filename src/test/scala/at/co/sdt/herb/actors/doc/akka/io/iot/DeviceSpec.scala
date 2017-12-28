@@ -64,10 +64,10 @@ class DeviceSpec(_system: ActorSystem)
     val deviceActor = system.actorOf(Device.props("gr1", "dev1"))
 
     deviceActor.tell(DeviceManager.RequestTrackDevice("wrongGroup", "dev1"), probe.ref)
-    probe.expectNoMsg(500.milliseconds)
+    probe.expectNoMessage(500.milliseconds)
 
     deviceActor.tell(DeviceManager.RequestTrackDevice("gr1", "Wrongdevice"), probe.ref)
-    probe.expectNoMsg(500.milliseconds)
+    probe.expectNoMessage(500.milliseconds)
   }
 
   "A DeviceGroup" should "be able to register a device actor" in {
@@ -95,7 +95,7 @@ class DeviceSpec(_system: ActorSystem)
     val groupActor = system.actorOf(DeviceGroup.props("grp1"))
 
     groupActor.tell(DeviceManager.RequestTrackDevice("wrongGroup", "dev1"), probe.ref)
-    probe.expectNoMsg(500.milliseconds)
+    probe.expectNoMessage(500.milliseconds)
   }
 
   it should "return same actor for same deviceId" in {
