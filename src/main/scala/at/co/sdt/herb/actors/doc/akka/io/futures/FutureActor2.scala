@@ -10,6 +10,8 @@ import scala.util.{ Failure, Success }
 object FutureActor2 {
   def props: Props = Props[FutureActor2]
 
+  val name = "actor2"
+
   trait Msg2
 
   trait Msg2WithDuration extends Msg2 {
@@ -24,6 +26,8 @@ object FutureActor2 {
 
   case class YouAreWelcome(msg: Msg2)
 
+  case class UnknownMessage(msg: Any)
+
   val maxBlockingTime: FiniteDuration = 2 seconds
 
 }
@@ -36,20 +40,23 @@ class FutureActor2 extends Actor with ActorLogging {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   override def receive: Receive = {
-    case i @ Immediate =>
-      log.debug(s"answering ${ YouAreWelcome(i) } to ${ sender().path.name }")
-      sender() ! YouAreWelcome(i)
+    case i @ Immediate => respond(i, sender())
     case b: Blocking => blockAndRespond(b, sender())
     case n: NonBlocking =>
       val lastSender = sender()
       val f = Future(blockAndRespond(n, lastSender))
       f.onComplete {
-        case Success(_) => log.info(s"future $f successful")
+        case Success(s) =>
+          log.info(s"future $s successful")
+          s
         case Failure(t) =>
-          log.error(s"future $f failed")
+          log.error(s"$f failed")
           throw t
       }
       log.debug(s"not responding to $n")
+    case u =>
+      log.info(s"unknown message $u from ${ sender().path }")
+    // sender() ! UnknownMessage(u)
   }
 
   def blockExecution(d: Duration): Unit = {

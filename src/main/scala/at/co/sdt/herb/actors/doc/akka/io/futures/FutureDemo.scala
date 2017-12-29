@@ -17,11 +17,16 @@ object FutureDemo extends App
   val actor1: ActorRef = system.actorOf(FutureActor1.props, "actor1")
   val log: Logger = Logger(getClass.getSimpleName)
 
-  actor1 ! Msg1(3 seconds, blocking = true)
-  actor1 ! Msg1(0 seconds)
-  /* actor1 ! Msg1(1 seconds)
-  actor1 ! Msg1(1 seconds, blocking = true) */
+  actor1 ! Tell(Msg1(0 seconds))
+  Thread.sleep(100L)
+  actor1 ! Ask(Msg1(0 seconds))
+  /* Thread.sleep(500L)
+  actor1 ! Msg1(1 seconds)
+  Thread.sleep(1500L)
+  actor1 ! Msg1(1 seconds, blocking = true)
+  Thread.sleep(1500L) */
 
+  Thread.sleep(100L)
   val waitTime = maxBlockingTime + (2 seconds)
   log.info(s"Actorsystem $system will be shut down in $waitTime")
   Thread.sleep(waitTime.toMillis)
