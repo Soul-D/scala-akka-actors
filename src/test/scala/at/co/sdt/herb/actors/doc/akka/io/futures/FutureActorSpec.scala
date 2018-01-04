@@ -62,52 +62,9 @@ class FutureActorSpec(_system: ActorSystem)
     askActor2Blocking(2 seconds)
   }
 
-  private def tellActor2Immediate(): Unit = {
-    val m = Immediate
-    actor2.tell(m, probe.ref)
-    probe.expectMsg(timeTolerance, YouAreWelcome(m))
-  }
-
-  private def tellActor2NonBlocking(dur: FiniteDuration): Unit = {
-    tellActor2(dur, NonBlocking(dur))
-  }
-
-  private def tellActor2Blocking(dur: FiniteDuration): Unit = {
-    tellActor2(dur, Blocking(dur))
-  }
-
-  private def tellActor2(dur: FiniteDuration, msg: Msg2): Unit = {
-    actor2.tell(msg, probe.ref)
-    probe.expectNoMessage(dur - timeTolerance)
-    probe.expectMsg(dur + timeTolerance, YouAreWelcome(msg))
-  }
-
-
-  private def askActor2Immediate(): Unit = {
-    askActor2(0 seconds, Immediate)
-  }
-
-  private def askActor2NonBlocking(dur: FiniteDuration): Unit = {
-    askActor2(dur, NonBlocking(dur))
-  }
-
-  private def askActor2Blocking(dur: FiniteDuration): Unit = {
-    askActor2(dur, Blocking(dur))
-  }
-
-  private def askActor2(dur: FiniteDuration, msg: Msg2): Unit = {
-    val f = actor2.ask(msg)(dur + timeTolerance, probe.ref)
-    val r = Await.result(f, dur + timeTolerance)
-    r shouldBe YouAreWelcome(msg)
-  }
-
   it should "timeout for too large times" in {
-    val d3: FiniteDuration = 3 seconds;
-    actor2.tell(NonBlocking(d3), probe.ref)
-    probe.expectNoMessage(d3 + timeTolerance)
-
-    actor2.tell(Blocking(d3), probe.ref)
-    probe.expectNoMessage(d3 + timeTolerance)
+    askActor2Blocking(3 seconds)
+    tellActor2Blocking(3 seconds)
   }
 
   val actor1: ActorRef = system.actorOf(Props[FutureActor1], FutureActor1.name)
@@ -146,4 +103,51 @@ class FutureActorSpec(_system: ActorSystem)
     probe.expectNoMessage(d2 - timeTolerance)
     probe.expectMsg(d2 + timeTolerance, YouAreWelcome(NonBlocking(d2)))
   }
+
+  private def tellActor2Immediate(): Unit = {
+    val m = Immediate
+    actor2.tell(m, probe.ref)
+    probe.expectMsg(timeTolerance, YouAreWelcome(m))
+  }
+
+  private def tellActor2NonBlocking(dur: FiniteDuration): Unit = {
+    tellActor2(dur, NonBlocking(dur))
+  }
+
+  private def tellActor2Blocking(dur: FiniteDuration): Unit = {
+    tellActor2(dur, Blocking(dur))
+  }
+
+  private def tellActor2(dur: FiniteDuration, msg: Msg2): Unit = {
+    actor2.tell(msg, probe.ref)
+    probe.expectNoMessage(dur - timeTolerance)
+    if (dur > FutureActor2.maxBlockingTime)
+      probe.expectNoMessage(dur + timeTolerance)
+    else
+      probe.expectMsg(dur + timeTolerance, YouAreWelcome(msg))
+  }
+
+
+  private def askActor2Immediate(): Unit = {
+    askActor2(0 seconds, Immediate)
+  }
+
+  private def askActor2NonBlocking(dur: FiniteDuration): Unit = {
+    askActor2(dur, NonBlocking(dur))
+  }
+
+  private def askActor2Blocking(dur: FiniteDuration): Unit = {
+    askActor2(dur, Blocking(dur))
+  }
+
+  private def askActor2(dur: FiniteDuration, msg: Msg2): Unit = {
+    val f = actor2.ask(msg)(dur + timeTolerance, probe.ref)
+    if (dur > FutureActor2.maxBlockingTime)
+      probe.expectNoMessage(dur + timeTolerance)
+    else {
+      val r = Await.result(f, dur + timeTolerance)
+      r shouldBe YouAreWelcome(msg)
+    }
+  }
+
 }
