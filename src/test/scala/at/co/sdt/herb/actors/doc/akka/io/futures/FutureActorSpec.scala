@@ -78,12 +78,12 @@ class FutureActorSpec(_system: ActorSystem)
 
     val d1: FiniteDuration = 1 seconds;
     actor1.tell(Tell(Msg1(d1)), probe.ref)
-    probe.expectNoMessage(d1 - timeTolerance)
+    probe.expectNoMsg(d1 - timeTolerance)
     probe.expectMsg(d1 + timeTolerance, YouAreWelcome(NonBlocking(d1)))
 
     val d2: FiniteDuration = 2 seconds;
     actor1.tell(Tell(Msg1(d2)), probe.ref)
-    probe.expectNoMessage(d2 - timeTolerance)
+    probe.expectNoMsg(d2 - timeTolerance)
     probe.expectMsg(d2 + timeTolerance, YouAreWelcome(NonBlocking(d2)))
   }
 
@@ -95,12 +95,12 @@ class FutureActorSpec(_system: ActorSystem)
 
     val d1: FiniteDuration = 1 seconds;
     actor1.tell(Tell(Msg1(d1)), probe.ref)
-    probe.expectNoMessage(d1 - timeTolerance)
+    probe.expectNoMsg(d1 - timeTolerance)
     probe.expectMsg(d1 + timeTolerance, YouAreWelcome(NonBlocking(d1)))
 
     val d2: FiniteDuration = 2 seconds;
     actor1.tell(Tell(Msg1(d2)), probe.ref)
-    probe.expectNoMessage(d2 - timeTolerance)
+    probe.expectNoMsg(d2 - timeTolerance)
     probe.expectMsg(d2 + timeTolerance, YouAreWelcome(NonBlocking(d2)))
   }
 
@@ -120,9 +120,9 @@ class FutureActorSpec(_system: ActorSystem)
 
   private def tellActor2(dur: FiniteDuration, msg: Msg2): Unit = {
     actor2.tell(msg, probe.ref)
-    probe.expectNoMessage(dur - timeTolerance)
+    probe.expectNoMsg(dur - timeTolerance)
     if (dur > FutureActor2.maxBlockingTime)
-      probe.expectNoMessage(dur + timeTolerance)
+      probe.expectNoMsg(dur + timeTolerance)
     else
       probe.expectMsg(dur + timeTolerance, YouAreWelcome(msg))
   }
@@ -143,7 +143,7 @@ class FutureActorSpec(_system: ActorSystem)
   private def askActor2(dur: FiniteDuration, msg: Msg2): Unit = {
     val f = actor2.ask(msg)(dur + timeTolerance, probe.ref)
     if (dur > FutureActor2.maxBlockingTime)
-      probe.expectNoMessage(dur + timeTolerance)
+      probe.expectNoMsg(dur + timeTolerance)
     else {
       val r = Await.result(f, dur + timeTolerance)
       r shouldBe YouAreWelcome(msg)

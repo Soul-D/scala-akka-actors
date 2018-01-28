@@ -44,7 +44,7 @@ class ActorHierarchyExperimentsSpec(_system: ActorSystem)
     val probe = TestProbe()
     // firstActor must not respond
     firstActor.tell(PrintIt, probe.ref)
-    probe.expectNoMessage(500.milliseconds)
+    probe.expectNoMsg(500.milliseconds)
 
     // there should be an actor with path "first-actor/second-actor"
     val id2 = 2

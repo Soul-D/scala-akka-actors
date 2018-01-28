@@ -145,7 +145,7 @@ class FSMDocSpec extends TestKit(ActorSystem("FSMDocSpec")) with ImplicitSender
     "not batch if uninitialized" in {
       val buncher = system.actorOf(Props[Buncher])
       buncher ! Queue(42)
-      expectNoMessage(1 second)
+      expectNoMsg(1 second)
     }
   }
 }
